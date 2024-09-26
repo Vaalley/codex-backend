@@ -73,7 +73,7 @@ func main() {
 
 		platform, err := getPlatformByName(client, request.Name)
 		if err != nil {
-			return c.Status(500).SendString("Failed to retrieve platform")
+			return err
 		}
 
 		return c.JSON(platform)
@@ -114,6 +114,7 @@ func main() {
 		return c.JSON(platform)
 	})
 
+	// API endpoint to update a platform
 	app.Post("/api/update-platform", func(c fiber.Ctx) error {
 		var request struct {
 			ID           string `json:"id"`
@@ -167,8 +168,37 @@ func main() {
 		return c.JSON(updatedPlatform)
 	})
 
+	// API endpoint to delete a platform
+	app.Post("/api/delete-platform", func(c fiber.Ctx) error {
+		var request struct {
+			ID string `json:"id"`
+		}
+
+		if err := json.Unmarshal(c.Body(), &request); err != nil {
+			return c.Status(400).SendString("Invalid request body")
+		}
+
+		// Validate ID
+		objectID, err := primitive.ObjectIDFromHex(request.ID)
+		if err != nil {
+			return c.Status(400).SendString("Invalid ID format")
+		}
+
+		// Delete platform
+		result, err := client.Database("codex-db").Collection("Codex").DeleteOne(context.TODO(), bson.M{"_id": objectID, "type": "platform"})
+		if err != nil {
+			return c.Status(500).SendString("Failed to delete platform")
+		}
+
+		if result.DeletedCount == 0 {
+			return c.Status(404).SendString("Platform not found")
+		}
+
+		return c.SendString("Platform deleted")
+	})
+
 	// Start the Fiber app
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen("localhost:3000"))
 }
 
 // getPlatforms retrieves all platforms from the database

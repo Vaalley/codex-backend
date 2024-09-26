@@ -16,7 +16,7 @@
 // 	headers: {
 // 		'Content-Type': 'application/json'
 // 	},
-// 	body: JSON.stringify({ name: 'Switch' })
+// 	body: JSON.stringify({ name: 'notaplatform' })
 // })
 // 	.then(response => response.json())
 // 	.then(data => console.log(data))
@@ -43,8 +43,8 @@
 // 		'Content-Type': 'application/json'
 // 	},
 // 	body: JSON.stringify({
-// 		name: 'Saturn',
-// 		manufacturer: 'Nintendo',
+// 		name: 'notaplatform',
+// 		manufacturer: 'notamanufacturer',
 // 	})
 // })
 // 	.then(response => response.json())
@@ -64,7 +64,21 @@
 // 		manufacturer: 'Sega'
 
 // 	})
-// })
+// }
 // 	.then(response => response.json())
 // 	.then(data => console.log(data))
 // 	.catch(error => console.error(error));
+
+// TESTS IF delete_platform WORKS
+fetch('http://127.0.0.1:3000/api/delete-platform', {
+	method: 'POST',
+	headers: {
+		'Content-Type': 'application/json'
+	},
+	body: JSON.stringify({
+		id: '66f528e30a6ed919a18f24f6'
+	})
+})
+	.then(response => response.json())
+	.then(data => console.log(data))
+	.catch(error => { console.log(error) })

@@ -1,4 +1,4 @@
-module valentinmusset.dev/codex-go-api
+module valentinmusset.dev/codex-backend
 
 go 1.21.5
 

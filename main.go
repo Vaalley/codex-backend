@@ -194,7 +194,7 @@ func main() {
 			return c.Status(404).SendString("Platform not found")
 		}
 
-		return c.SendString("Platform deleted")
+		return c.JSON(fiber.Map{"message": "Platform deleted successfully"})
 	})
 
 	// Start the Fiber app

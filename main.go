@@ -12,19 +12,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/joho/godotenv"
 )
 
 // Platform represents a gaming platform
 type Platform struct {
-	ID           primitive.ObjectID `bson:"_id,omitempty"`
-	Name         string             `json:"name"`
-	Manufacturer string             `json:"manufacturer"`
-	Type         string             `json:"type" bson:"type"`
+	ID           primitive.ObjectID `bson:"_id,omitempty" validate:"required"`
+	Name         string             `json:"name" validate:"required,min=3,max=50"`
+	Manufacturer string             `json:"manufacturer" validate:"required,min=3,max=50"`
+	Type         string             `json:"type" bson:"type" validate:"required"`
 }
 
 func main() {
+	validate := validator.New()
 	// Load environment variables from .env file
 	err := godotenv.Load()
 	if err != nil {
@@ -49,14 +51,14 @@ func main() {
 
 	// API endpoint to make sure the api is working and running
 	app.Get("/", func(c fiber.Ctx) error {
-		return c.SendString("API is working")
+		return c.JSON(map[string]string{"message": "Hello World"})
 	})
 
 	// API endpoint to get all platforms
 	app.Get("/api/get-platforms", func(c fiber.Ctx) error {
 		platforms, err := getPlatforms(client)
 		if err != nil {
-			return c.Status(500).SendString("Failed to retrieve platforms")
+			return c.Status(500).JSON(map[string]string{"message": "Failed to retrieve platforms"})
 		}
 		return c.JSON(platforms)
 	})
@@ -68,7 +70,11 @@ func main() {
 		}
 
 		if err := json.Unmarshal(c.Body(), &request); err != nil {
-			return c.Status(400).SendString("Invalid request body")
+			return c.Status(400).JSON(map[string]string{"message": "Invalid request body"})
+		}
+
+		if err := validate.Struct(request); err != nil {
+			return c.Status(400).JSON(map[string]string{"message": "Invalid request body"})
 		}
 
 		platform, err := getPlatformByName(client, request.Name)
@@ -86,12 +92,12 @@ func main() {
 		}
 
 		if err := json.Unmarshal(c.Body(), &request); err != nil {
-			return c.Status(400).SendString("Invalid request body")
+			return c.Status(400).JSON(map[string]string{"message": "Invalid request body"})
 		}
 
 		platform, err := getPlatformById(client, request.ID)
 		if err != nil {
-			return c.Status(500).SendString("Failed to retrieve platform")
+			return c.Status(500).JSON(map[string]string{"message": "Failed to retrieve platform"})
 		}
 
 		return c.JSON(platform)
@@ -101,15 +107,26 @@ func main() {
 	app.Post("/api/add-platform", func(c fiber.Ctx) error {
 		var platform Platform
 		if err := json.Unmarshal(c.Body(), &platform); err != nil {
-			return c.Status(400).SendString("Invalid request body")
+			return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
 		}
 
 		platform.ID = primitive.NewObjectID()
 		platform.Type = "platform"
 
+		if err := validate.Struct(platform); err != nil {
+			validationError := err.(validator.ValidationErrors)[0]
+			return c.Status(400).JSON(fiber.Map{
+				"error": fmt.Sprintf(
+					"%s should match %s %s",
+					validationError.Field(),
+					validationError.Tag(),
+					validationError.Param(),
+				),
+			})
+		}
 		_, err := client.Database("codex-db").Collection("Codex").InsertOne(context.TODO(), platform)
 		if err != nil {
-			return c.Status(500).SendString("Failed to add platform")
+			return c.Status(500).JSON(fiber.Map{"error": "Failed to add platform"})
 		}
 		return c.JSON(platform)
 	})
@@ -175,23 +192,23 @@ func main() {
 		}
 
 		if err := json.Unmarshal(c.Body(), &request); err != nil {
-			return c.Status(400).SendString("Invalid request body")
+			return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
 		}
 
 		// Validate ID
 		objectID, err := primitive.ObjectIDFromHex(request.ID)
 		if err != nil {
-			return c.Status(400).SendString("Invalid ID format")
+			return c.Status(400).JSON(fiber.Map{"error": "Invalid ID format"})
 		}
 
 		// Delete platform
 		result, err := client.Database("codex-db").Collection("Codex").DeleteOne(context.TODO(), bson.M{"_id": objectID, "type": "platform"})
 		if err != nil {
-			return c.Status(500).SendString("Failed to delete platform")
+			return c.Status(500).JSON(fiber.Map{"error": "Failed to delete platform"})
 		}
 
 		if result.DeletedCount == 0 {
-			return c.Status(404).SendString("Platform not found")
+			return c.Status(404).JSON(fiber.Map{"error": "Platform not found"})
 		}
 
 		return c.JSON(fiber.Map{"message": "Platform deleted successfully"})

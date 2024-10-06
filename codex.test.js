@@ -40,10 +40,14 @@ test('add, update, and delete platform', async () => {
 	// Add platform
 	const addResponse = await codexFetch('add-platform', {
 		body: {
-			name: 'notaplatform',
+			name: 'notapllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllatform',
 			manufacturer: 'notamanufacturer',
 		}
 	})
+	if (addResponse.error) {
+		expect(addResponse).not.toHaveProperty('error');
+		return
+	}
 	expect(addResponse).toHaveProperty('ID');
 
 	// Update platform

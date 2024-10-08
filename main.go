@@ -30,7 +30,7 @@ func main() {
 	// Load environment variables from .env file
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error loading .env file: %v", err)
 	}
 
 	// Set up MongoDB connection
@@ -38,11 +38,11 @@ func main() {
 		os.Getenv("MONGODB_USERNAME"), os.Getenv("MONGODB_PASSWORD"))
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error connecting to MongoDB: %v", err)
 	}
 	defer func() {
 		if err = client.Disconnect(context.TODO()); err != nil {
-			log.Fatal(err)
+			log.Fatalf("Error disconnecting from MongoDB: %v", err)
 		}
 	}()
 
@@ -58,6 +58,7 @@ func main() {
 	app.Get("/api/get-platforms", func(c fiber.Ctx) error {
 		platforms, err := getPlatforms(client)
 		if err != nil {
+			log.Printf("Error retrieving platforms: %v", err)
 			return c.Status(500).JSON(map[string]string{"message": "Failed to retrieve platforms"})
 		}
 		return c.JSON(platforms)
@@ -70,16 +71,19 @@ func main() {
 		}
 
 		if err := json.Unmarshal(c.Body(), &request); err != nil {
+			log.Printf("Error parsing request body: %v", err)
 			return c.Status(400).JSON(map[string]string{"message": "Invalid request body"})
 		}
 
 		if err := validate.Struct(request); err != nil {
+			log.Printf("Validation error: %v", err)
 			return c.Status(400).JSON(map[string]string{"message": "Invalid request body"})
 		}
 
 		platform, err := getPlatformByName(client, request.Name)
 		if err != nil {
-			return err
+			log.Printf("Error retrieving platform by name: %v", err)
+			return c.Status(500).JSON(map[string]string{"message": "Failed to retrieve platform"})
 		}
 
 		return c.JSON(platform)
@@ -92,11 +96,13 @@ func main() {
 		}
 
 		if err := json.Unmarshal(c.Body(), &request); err != nil {
+			log.Printf("Error parsing request body: %v", err)
 			return c.Status(400).JSON(map[string]string{"message": "Invalid request body"})
 		}
 
 		platform, err := getPlatformById(client, request.ID)
 		if err != nil {
+			log.Printf("Error retrieving platform by ID: %v", err)
 			return c.Status(500).JSON(map[string]string{"message": "Failed to retrieve platform"})
 		}
 
@@ -114,18 +120,25 @@ func main() {
 		platform.Type = "platform"
 
 		if err := validate.Struct(platform); err != nil {
-			validationError := err.(validator.ValidationErrors)[0]
-			return c.Status(400).JSON(fiber.Map{
-				"error": fmt.Sprintf(
-					"%s should match %s %s",
-					validationError.Field(),
-					validationError.Tag(),
-					validationError.Param(),
-				),
-			})
+			validationErrors := err.(validator.ValidationErrors)
+			var validationError string
+			for _, e := range validationErrors {
+				validationError += fmt.Sprintf(
+					"%s should match %s %s\n",
+					e.Field(),
+					e.Tag(),
+					e.Param(),
+				)
+			}
+			return c.Status(400).JSON(fiber.Map{"error": validationError})
 		}
-		_, err := client.Database("codex-db").Collection("Codex").InsertOne(context.TODO(), platform)
+
+		err := addPlatform(client, platform)
+
 		if err != nil {
+			if mongo.IsDuplicateKeyError(err) {
+				return c.Status(400).JSON(fiber.Map{"error": "Platform already exists"})
+			}
 			return c.Status(500).JSON(fiber.Map{"error": "Failed to add platform"})
 		}
 		return c.JSON(platform)
@@ -165,6 +178,10 @@ func main() {
 			bson.M{"$set": update},
 		)
 		if err != nil {
+			if mongo.IsDuplicateKeyError(err) {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Platform with the same name already exists"})
+			}
+
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update platform"})
 		}
 
@@ -192,23 +209,27 @@ func main() {
 		}
 
 		if err := json.Unmarshal(c.Body(), &request); err != nil {
-			return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}
 
 		// Validate ID
 		objectID, err := primitive.ObjectIDFromHex(request.ID)
 		if err != nil {
-			return c.Status(400).JSON(fiber.Map{"error": "Invalid ID format"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid ID format"})
 		}
 
 		// Delete platform
 		result, err := client.Database("codex-db").Collection("Codex").DeleteOne(context.TODO(), bson.M{"_id": objectID, "type": "platform"})
 		if err != nil {
-			return c.Status(500).JSON(fiber.Map{"error": "Failed to delete platform"})
+			if mongo.IsDuplicateKeyError(err) {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Platform with the same ID already exists"})
+			}
+
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete platform"})
 		}
 
 		if result.DeletedCount == 0 {
-			return c.Status(404).JSON(fiber.Map{"error": "Platform not found"})
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Platform not found"})
 		}
 
 		return c.JSON(fiber.Map{"message": "Platform deleted successfully"})
@@ -291,4 +312,17 @@ func getPlatformById(client *mongo.Client, id string) (Platform, error) {
 	}
 
 	return platform, nil
+}
+
+func addPlatform(client *mongo.Client, platform Platform) error {
+	// Get a collection handle
+	collection := client.Database("codex-db").Collection("Codex")
+
+	// Insert the platform
+	_, err := collection.InsertOne(context.TODO(), platform)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

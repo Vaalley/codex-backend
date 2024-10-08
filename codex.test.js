@@ -40,7 +40,7 @@ test('add, update, and delete platform', async () => {
 	// Add platform
 	const addResponse = await codexFetch('add-platform', {
 		body: {
-			name: 'notapllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllatform',
+			name: 'notaplatform',
 			manufacturer: 'notamanufacturer',
 		}
 	})

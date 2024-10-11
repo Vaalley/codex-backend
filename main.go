@@ -171,12 +171,14 @@ func main() {
 			update["manufacturer"] = request.Manufacturer
 		}
 
-		// Perform update
-		result, err := client.Database("codex-db").Collection("Codex").UpdateOne(
-			context.TODO(),
-			bson.M{"_id": objectID, "type": "platform"},
-			bson.M{"$set": update},
-		)
+		platform := Platform{
+			ID:           objectID,
+			Name:         request.Name,
+			Manufacturer: request.Manufacturer,
+			Type:         "platform",
+		}
+
+		err = updatePlatform(client, platform)
 		if err != nil {
 			if mongo.IsDuplicateKeyError(err) {
 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Platform with the same name already exists"})
@@ -185,21 +187,7 @@ func main() {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update platform"})
 		}
 
-		if result.MatchedCount == 0 {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Platform not found"})
-		}
-
-		// Fetch updated platform
-		var updatedPlatform Platform
-		err = client.Database("codex-db").Collection("Codex").FindOne(
-			context.TODO(),
-			bson.M{"_id": objectID},
-		).Decode(&updatedPlatform)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve updated platform"})
-		}
-
-		return c.JSON(updatedPlatform)
+		return c.JSON(platform)
 	})
 
 	// API endpoint to delete a platform
@@ -212,29 +200,14 @@ func main() {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 		}
 
-		// Validate ID
-		objectID, err := primitive.ObjectIDFromHex(request.ID)
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid ID format"})
-		}
-
 		// Delete platform
-		result, err := client.Database("codex-db").Collection("Codex").DeleteOne(context.TODO(), bson.M{"_id": objectID, "type": "platform"})
+		err = deletePlatform(client, request.ID)
 		if err != nil {
-			if mongo.IsDuplicateKeyError(err) {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Platform with the same ID already exists"})
-			}
-
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete platform"})
-		}
-
-		if result.DeletedCount == 0 {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Platform not found"})
 		}
 
 		return c.JSON(fiber.Map{"message": "Platform deleted successfully"})
 	})
-
 	// Start the Fiber app
 	log.Fatal(app.Listen("localhost:3000"))
 }
@@ -320,6 +293,38 @@ func addPlatform(client *mongo.Client, platform Platform) error {
 
 	// Insert the platform
 	_, err := collection.InsertOne(context.TODO(), platform)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func updatePlatform(client *mongo.Client, platform Platform) error {
+	// Get a collection handle
+	collection := client.Database("codex-db").Collection("Codex")
+
+	// Update the platform
+	_, err := collection.UpdateOne(context.TODO(), bson.M{"_id": platform.ID}, bson.M{"$set": platform})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func deletePlatform(client *mongo.Client, id string) error {
+	// Get a collection handle
+	collection := client.Database("codex-db").Collection("Codex")
+
+	// Convert the string ID to an ObjectId
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	// Delete the platform
+	_, err = collection.DeleteOne(context.TODO(), bson.M{"_id": objID})
 	if err != nil {
 		return err
 	}

@@ -18,6 +18,8 @@ func RegisterRoutes(app *fiber.App) {
 	api.Get("/get-platforms", controllers.GetPlatforms)
 	// Get a specific platform by its ID (sent as a query parameter)
 	api.Get("/get-platform-by-id", controllers.GetPlatformByID)
+	// Get a specific platform by its name (sent as a query parameter and case-insensitive)
+	api.Get("/get-platform-by-name", controllers.GetPlatformByName)
 
 	// api.Post("/create-platform", controllers.CreatePlatform)
 }

@@ -14,14 +14,22 @@ import (
 
 const platformCollectionName = "platforms"
 
-// returns a list of all platforms
+// GetPlatforms returns a list of all platforms or filters by name if a query parameter is provided
 func GetPlatforms(c fiber.Ctx) error {
 	collection := db.GetCollection(platformCollectionName)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	name := c.Query("name") // Check if name query parameter is present
+
 	var platforms []models.Platform
-	cursor, err := collection.Find(ctx, bson.M{})
+	filter := bson.M{}
+
+	if name != "" {
+		filter = bson.M{"name": bson.D{{Key: "$regex", Value: primitive.Regex{Pattern: name, Options: "i"}}}}
+	}
+
+	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
 		return c.Status(500).SendString(err.Error())
 	}
@@ -38,27 +46,12 @@ func GetPlatformByID(c fiber.Ctx) error {
 	defer cancel()
 
 	var platform models.Platform
-	id := c.Query("id")
+	id := c.Params("id")
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return c.Status(400).SendString("Invalid platform ID")
 	}
 	err = collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&platform)
-	if err != nil {
-		return c.Status(404).SendString("Platform not found")
-	}
-	return c.JSON(platform)
-}
-
-// returns a specific platform by its name
-func GetPlatformByName(c fiber.Ctx) error {
-	collection := db.GetCollection(platformCollectionName)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	var platform models.Platform
-	name := c.Query("name")
-	err := collection.FindOne(ctx, bson.M{"name": bson.D{{Key: "$regex", Value: primitive.Regex{Pattern: name, Options: "i"}}}}).Decode(&platform)
 	if err != nil {
 		return c.Status(404).SendString("Platform not found")
 	}

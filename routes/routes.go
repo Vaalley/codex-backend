@@ -10,6 +10,10 @@ import (
 func RegisterRoutes(app *fiber.App) {
 	api := app.Group("/api")
 
+	api.Get("/", func(c fiber.Ctx) error {
+		return c.SendString("It runs!")
+	})
+
 	// |-------------------------------------------------------|
 	// |                    Platform Routes                    |
 	// |-------------------------------------------------------|

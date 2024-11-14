@@ -1,86 +1,177 @@
 package controllers
 
 import (
-	"codex-backend/db"
 	"codex-backend/middleware"
 	"codex-backend/models"
+	"codex-backend/services"
 	"codex-backend/utils"
 	"context"
 	"encoding/json"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-const platformCollectionName = "platforms"
+type PlatformController struct {
+	service services.PlatformService
+}
+
+func NewPlatformController(service services.PlatformService) *PlatformController {
+	return &PlatformController{
+		service: service,
+	}
+}
 
 // GetPlatforms returns a list of all platforms or filters by name if a query parameter is provided
-func GetPlatforms(c fiber.Ctx) error {
-	collection := db.GetCollection(platformCollectionName)
+func (pc *PlatformController) GetPlatforms(c fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	name := c.Query("name") // Check if name query parameter is present
-
-	var platforms []models.Platform
-	filter := bson.M{}
-
-	if name != "" {
-		filter = bson.M{"name": bson.D{{Key: "$regex", Value: primitive.Regex{Pattern: name, Options: "i"}}}}
-	}
-
-	cursor, err := collection.Find(ctx, filter)
+	name := c.Query("name")
+	platforms, err := pc.service.GetPlatforms(ctx, name)
 	if err != nil {
-		return c.Status(500).SendString(err.Error())
+		return c.Status(500).JSON(models.ErrorResponse{
+			Status:  500,
+			Message: "Failed to fetch platforms",
+		})
 	}
-	if err := cursor.All(ctx, &platforms); err != nil {
-		return c.Status(500).SendString(err.Error())
-	}
+
 	return c.JSON(platforms)
 }
 
-// returns a specific platform by its ID
-func GetPlatformByID(c fiber.Ctx) error {
-	collection := db.GetCollection(platformCollectionName)
+// GetPlatformByID returns a specific platform by its ID
+func (pc *PlatformController) GetPlatformByID(c fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var platform models.Platform
 	id := c.Params("id")
-	objID, err := primitive.ObjectIDFromHex(id)
+	platform, err := pc.service.GetPlatformByID(ctx, id)
 	if err != nil {
-		return c.Status(400).SendString("Invalid platform ID")
+		switch err {
+		case services.ErrInvalidID:
+			return c.Status(400).JSON(models.ErrorResponse{
+				Status:  400,
+				Message: "Invalid platform ID",
+			})
+		case services.ErrPlatformNotFound:
+			return c.Status(404).JSON(models.ErrorResponse{
+				Status:  404,
+				Message: "Platform not found",
+			})
+		default:
+			return c.Status(500).JSON(models.ErrorResponse{
+				Status:  500,
+				Message: "Failed to fetch platform",
+			})
+		}
 	}
-	err = collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&platform)
-	if err != nil {
-		return c.Status(404).SendString("Platform not found")
-	}
+
 	return c.JSON(platform)
 }
 
-// adds a new platform
-func CreatePlatform(c fiber.Ctx) error {
-	collection := db.GetCollection(platformCollectionName)
+// CreatePlatform adds a new platform
+func (pc *PlatformController) CreatePlatform(c fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	var platform models.Platform
 	if err := json.Unmarshal(c.Body(), &platform); err != nil {
-		return c.Status(400).SendString(err.Error())
+		return c.Status(400).JSON(models.ErrorResponse{
+			Status:  400,
+			Message: "Invalid request body",
+		})
 	}
-
-	platform.ID = primitive.NewObjectID()
-	platform.Type = "platform"
 
 	if err := utils.ValidateStruct(platform); err != nil {
 		return middleware.ErrorHandlerMiddleware(c, err)
 	}
 
-	_, err := collection.InsertOne(ctx, platform)
-	if err != nil {
-		return c.Status(500).SendString(err.Error())
+	if err := pc.service.CreatePlatform(ctx, &platform); err != nil {
+		return c.Status(500).JSON(models.ErrorResponse{
+			Status:  500,
+			Message: "Failed to create platform",
+		})
 	}
+
 	return c.Status(201).JSON(platform)
+}
+
+// UpdatePlatform updates an existing platform
+func (pc *PlatformController) UpdatePlatform(c fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var updateData models.PlatformUpdate
+	if err := json.Unmarshal(c.Body(), &updateData); err != nil {
+		return c.Status(400).JSON(models.ErrorResponse{
+			Status:  400,
+			Message: "Invalid request body",
+		})
+	}
+
+	if err := utils.ValidateStruct(updateData); err != nil {
+		return middleware.ErrorHandlerMiddleware(c, err)
+	}
+
+	id := c.Params("id")
+	platform, err := pc.service.UpdatePlatform(ctx, id, &updateData)
+	if err != nil {
+		switch err {
+		case services.ErrInvalidID:
+			return c.Status(400).JSON(models.ErrorResponse{
+				Status:  400,
+				Message: "Invalid platform ID",
+			})
+		case services.ErrNoUpdateData:
+			return c.Status(400).JSON(models.ErrorResponse{
+				Status:  400,
+				Message: "At least one field (name or manufacturer) must be provided for update",
+			})
+		case services.ErrPlatformNotFound:
+			return c.Status(404).JSON(models.ErrorResponse{
+				Status:  404,
+				Message: "Platform not found",
+			})
+		default:
+			return c.Status(500).JSON(models.ErrorResponse{
+				Status:  500,
+				Message: "Failed to update platform",
+			})
+		}
+	}
+
+	return c.JSON(platform)
+}
+
+// DeletePlatform removes a platform by its ID
+func (pc *PlatformController) DeletePlatform(c fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	id := c.Params("id")
+	platform, err := pc.service.DeletePlatform(ctx, id)
+	if err != nil {
+		switch err {
+		case services.ErrInvalidID:
+			return c.Status(400).JSON(models.ErrorResponse{
+				Status:  400,
+				Message: "Invalid platform ID",
+			})
+		case services.ErrPlatformNotFound:
+			return c.Status(404).JSON(models.ErrorResponse{
+				Status:  404,
+				Message: "Platform not found",
+			})
+		default:
+			return c.Status(500).JSON(models.ErrorResponse{
+				Status:  500,
+				Message: "Failed to delete platform",
+			})
+		}
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"message": "Platform deleted successfully",
+		"deleted": platform,
+	})
 }

@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"codex-backend/db"
+	"codex-backend/middleware"
 	"codex-backend/models"
+	"codex-backend/utils"
 	"context"
 	"encoding/json"
 	"time"
@@ -71,6 +73,11 @@ func CreatePlatform(c fiber.Ctx) error {
 
 	platform.ID = primitive.NewObjectID()
 	platform.Type = "platform"
+
+	if err := utils.ValidateStruct(platform); err != nil {
+		return middleware.ErrorHandlerMiddleware(c, err)
+	}
+
 	_, err := collection.InsertOne(ctx, platform)
 	if err != nil {
 		return c.Status(500).SendString(err.Error())

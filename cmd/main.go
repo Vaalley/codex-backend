@@ -3,6 +3,7 @@ package main
 import (
 	"codex-backend/config"
 	"codex-backend/db"
+	"codex-backend/middleware"
 	"codex-backend/routes"
 	"log"
 
@@ -15,7 +16,9 @@ func main() {
 	db.ConnectMongo()
 
 	// Initialize Fiber app
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		ErrorHandler: middleware.ErrorHandlerMiddleware,
+	})
 
 	// Register routes
 	routes.RegisterRoutes(app)

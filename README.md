@@ -15,11 +15,9 @@ Current:
 Coming Soon:
 - Game management and tracking
 - Completion status tracking
-- Achievement tracking
 - Progress statistics
 - User profiles and authentication
 - Game library management
-- Custom completion criteria
 - Progress sharing
 
 ## 📋 Prerequisites
@@ -52,34 +50,6 @@ Coming Soon:
 └── utils/            # Utility functions
 ```
 
-## 🚀 Getting Started
-
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd codex-backend
-   ```
-
-2. Set up environment variables:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-3. Install dependencies:
-   ```bash
-   go mod download
-   ```
-
-4. Run the application:
-   ```bash
-   # Development (with live reload)
-   air
-
-   # Production
-   go run cmd/main.go
-   ```
-
 ## 📡 API Endpoints
 
 ### Currently Implemented
@@ -91,28 +61,8 @@ Coming Soon:
 - `PUT /api/platforms/:id` - Update platform information
 - `DELETE /api/platforms/:id` - Remove platform
 
-### Coming Soon
-
-#### Games
-- `GET /api/games` - List all games
-- `GET /api/games/:id` - Get game details
-- `POST /api/games` - Add new game
-- `PUT /api/games/:id` - Update game information
-- `DELETE /api/games/:id` - Remove game
-
-#### User Progress
-- `GET /api/progress` - Get user's completion progress
-- `POST /api/progress` - Update completion status
-- `GET /api/statistics` - Get completion statistics
 
 For detailed API documentation, see [request_flow.md](docs/request_flow.md).
-
-## 🧪 Testing
-
-Run tests:
-```bash
-go test ./...
-```
 
 ## 🏛️ Architecture
 
@@ -130,36 +80,6 @@ The clean architecture allows us to:
 - Scale the application as it grows
 
 For detailed architecture documentation, see [request_flow.md](docs/request_flow.md).
-
-## 📝 Environment Variables
-
-```env
-MONGODB_URI=mongodb://localhost:27017
-MONGODB_DATABASE=codex
-PORT=3000
-```
-
-## 🎯 Roadmap
-
-1. **Phase 1** 
-   - Platform management
-   - Basic API structure
-   - Clean architecture implementation
-
-2. **Phase 2** 
-   - Game management
-   - Basic completion tracking
-   - User authentication
-
-3. **Phase 3** 
-   - Achievement tracking
-   - Progress statistics
-   - Social features
-
-4. **Phase 4** 
-   - Custom completion criteria
-   - Advanced statistics
-   - API documentation
 
 ## Contributing
 

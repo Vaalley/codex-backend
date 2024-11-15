@@ -37,9 +37,9 @@ Coming Soon:
 
 ```
 .
-├── cmd/                # Application entry points
-├── config/            # Configuration
-├── controllers/       # HTTP request handlers
+├── cmd/              # Application entry points
+├── config/           # Configuration
+├── controllers/      # HTTP request handlers
 ├── db/               # Database connection and setup
 ├── docs/             # Documentation
 ├── middleware/       # HTTP middleware

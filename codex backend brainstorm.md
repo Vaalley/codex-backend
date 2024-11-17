@@ -41,7 +41,6 @@
 | `cover_image_url`  | VARCHAR        | URL to the cover image of the game.                     |
 | `description`      | TEXT           | Brief description or synopsis of the game.              |
 | `metacritic_score` | INT            | Aggregate review score (e.g., Metacritic).              |
-| `age_rating`       | VARCHAR        | Age rating for the game (e.g., ESRB, PEGI).             |
 | `user_scores`      | JSON           | JSON object storing user ratings and the overall score. |
 
 ### Genres Table

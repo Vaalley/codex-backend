@@ -18,6 +18,10 @@ func RegisterRoutes(app *fiber.App) {
 	platformService := services.NewPlatformService(platformRepo)
 	platformController := controllers.NewPlatformController(platformService)
 
+	gameRepo := repositories.NewMongoGameRepository(db.GetCollection("games"))
+	gameService := services.NewGameService(gameRepo)
+	gameController := controllers.NewGameController(gameService)
+
 	api := app.Group("/api")
 
 	api.Get("/", func(c fiber.Ctx) error {
@@ -33,4 +37,14 @@ func RegisterRoutes(app *fiber.App) {
 	api.Post("/platforms", middleware.ValidateRequestBody(&models.Platform{}), platformController.CreatePlatform)
 	api.Put("/platforms/:id", middleware.ValidateRequestBody(&models.Platform{}), platformController.UpdatePlatform)
 	api.Delete("/platforms/:id", platformController.DeletePlatform)
+
+	// |-------------------------------------------------------|
+	// |                    Game Routes                        |
+	// |-------------------------------------------------------|
+
+	api.Get("/games", gameController.GetGames)
+	api.Get("/games/:id", gameController.GetGameByID)
+	api.Post("/games", middleware.ValidateRequestBody(&models.Game{}), gameController.CreateGame)
+	api.Put("/games/:id", middleware.ValidateRequestBody(&models.Game{}), gameController.UpdateGame)
+	api.Delete("/games/:id", gameController.DeleteGame)
 }

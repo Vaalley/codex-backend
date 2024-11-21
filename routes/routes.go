@@ -24,6 +24,9 @@ func RegisterRoutes(app *fiber.App) {
 
 	api := app.Group("/api")
 
+	// Apply API key middleware to all routes
+	api.Use(middleware.ValidateAPIKey)
+
 	api.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("It runs!")
 	})

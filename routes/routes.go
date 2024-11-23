@@ -30,6 +30,10 @@ func RegisterRoutes(app *fiber.App) {
 	developerService := services.NewDeveloperService(developerRepo)
 	developerController := controllers.NewDeveloperController(developerService)
 
+	publisherRepo := repositories.NewMongoPublisherRepository(db.GetCollection("publishers"))
+	publisherService := services.NewPublisherService(publisherRepo)
+	publisherController := controllers.NewPublisherController(publisherService)
+
 	api := app.Group("/api")
 
 	// Apply API key middleware to all routes
@@ -78,4 +82,14 @@ func RegisterRoutes(app *fiber.App) {
 	api.Post("/developers", middleware.ValidateRequestBody(&models.Developer{}), developerController.CreateDeveloper)
 	api.Put("/developers/:id", middleware.ValidateRequestBody(&models.DeveloperUpdate{}), developerController.UpdateDeveloper)
 	api.Delete("/developers/:id", developerController.DeleteDeveloper)
+
+	// |-------------------------------------------------------|
+	// |                   Publisher Routes                     |
+	// |-------------------------------------------------------|
+
+	api.Get("/publishers", publisherController.GetPublishers)
+	api.Get("/publishers/:id", publisherController.GetPublisherByID)
+	api.Post("/publishers", middleware.ValidateRequestBody(&models.Publisher{}), publisherController.CreatePublisher)
+	api.Put("/publishers/:id", middleware.ValidateRequestBody(&models.PublisherUpdate{}), publisherController.UpdatePublisher)
+	api.Delete("/publishers/:id", publisherController.DeletePublisher)
 }

@@ -15,7 +15,7 @@ type Game struct {
 	Publisher   string               `json:"publisher" bson:"publisher" validate:"required,min=2,max=50"`
 	ReleaseDate time.Time            `json:"releaseDate" bson:"releaseDate" validate:"required"`
 	Platforms   []primitive.ObjectID `json:"platforms" bson:"platforms" validate:"required,min=1"`
-	Genre       []string             `json:"genre" bson:"genre" validate:"required,min=1"`
+	Genres      []primitive.ObjectID `json:"genres" bson:"genres" validate:"required,min=1"`
 	CoverImage  string               `json:"coverImage" bson:"coverImage" validate:"required"`
 	CreatedAt   time.Time            `json:"createdAt" bson:"createdAt"`
 	UpdatedAt   time.Time            `json:"updatedAt" bson:"updatedAt"`
@@ -29,5 +29,5 @@ type GameUpdate struct {
 	Publisher   *string              `json:"publisher,omitempty" bson:"publisher,omitempty" validate:"omitempty,min=2,max=50"`
 	ReleaseDate *time.Time           `json:"releaseDate,omitempty" bson:"releaseDate,omitempty"`
 	Platforms   []primitive.ObjectID `json:"platforms,omitempty" bson:"platforms,omitempty" validate:"omitempty,min=1"`
-	Genre       []string             `json:"genre,omitempty" bson:"genre,omitempty" validate:"omitempty,min=1"`
+	Genres      []primitive.ObjectID `json:"genres,omitempty" bson:"genres,omitempty" validate:"omitempty,min=1"`
 }

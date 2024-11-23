@@ -22,6 +22,10 @@ func RegisterRoutes(app *fiber.App) {
 	gameService := services.NewGameService(gameRepo)
 	gameController := controllers.NewGameController(gameService)
 
+	genreRepo := repositories.NewMongoGenreRepository(db.GetCollection("genres"))
+	genreService := services.NewGenreService(genreRepo)
+	genreController := controllers.NewGenreController(genreService)
+
 	api := app.Group("/api")
 
 	// Apply API key middleware to all routes
@@ -50,4 +54,14 @@ func RegisterRoutes(app *fiber.App) {
 	api.Post("/games", middleware.ValidateRequestBody(&models.Game{}), gameController.CreateGame)
 	api.Put("/games/:id", middleware.ValidateRequestBody(&models.Game{}), gameController.UpdateGame)
 	api.Delete("/games/:id", gameController.DeleteGame)
+
+	// |-------------------------------------------------------|
+	// |                    Genre Routes                       |
+	// |-------------------------------------------------------|
+
+	api.Get("/genres", genreController.GetGenres)
+	api.Get("/genres/:id", genreController.GetGenreByID)
+	api.Post("/genres", middleware.ValidateRequestBody(&models.Genre{}), genreController.CreateGenre)
+	api.Put("/genres/:id", middleware.ValidateRequestBody(&models.GenreUpdate{}), genreController.UpdateGenre)
+	api.Delete("/genres/:id", genreController.DeleteGenre)
 }

@@ -5,6 +5,7 @@ import (
 	"codex-backend/repositories"
 	"context"
 	"errors"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -61,6 +62,8 @@ func (s *genreService) GetGenreByID(ctx context.Context, id string) (*models.Gen
 }
 
 func (s *genreService) CreateGenre(ctx context.Context, genre *models.Genre) error {
+	genre.CreatedAt = time.Now()
+	genre.UpdatedAt = time.Now()
 	return s.repo.Create(ctx, genre)
 }
 
@@ -74,7 +77,9 @@ func (s *genreService) UpdateGenre(ctx context.Context, id string, update *model
 		return nil, ErrInvalidGenreID
 	}
 
-	updateData := bson.M{}
+	updateData := bson.M{
+		"updatedAt": time.Now(),
+	}
 	if update.Name != nil {
 		updateData["name"] = *update.Name
 	}

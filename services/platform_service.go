@@ -5,6 +5,7 @@ import (
 	"codex-backend/repositories"
 	"context"
 	"errors"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -62,6 +63,8 @@ func (s *platformService) GetPlatformByID(ctx context.Context, id string) (*mode
 
 func (s *platformService) CreatePlatform(ctx context.Context, platform *models.Platform) error {
 	platform.ID = primitive.NewObjectID()
+	platform.CreatedAt = time.Now()
+	platform.UpdatedAt = time.Now()
 	return s.repo.Create(ctx, platform)
 }
 
@@ -75,7 +78,9 @@ func (s *platformService) UpdatePlatform(ctx context.Context, id string, update 
 		return nil, ErrNoUpdateData
 	}
 
-	updateDoc := bson.M{"$set": bson.M{}}
+	updateDoc := bson.M{"$set": bson.M{
+		"updatedAt": time.Now(),
+	}}
 	if update.Name != nil {
 		updateDoc["$set"].(bson.M)["name"] = *update.Name
 	}

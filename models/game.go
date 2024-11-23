@@ -11,7 +11,7 @@ type Game struct {
 	ID          primitive.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
 	Title       string               `json:"title" bson:"title" validate:"required,min=1,max=100"`
 	Description string               `json:"description" bson:"description" validate:"required,min=1"`
-	Developer   string               `json:"developer" bson:"developer" validate:"required,min=2,max=50"`
+	Developers  []primitive.ObjectID `json:"developers" bson:"developers" validate:"required,min=1"`
 	Publisher   string               `json:"publisher" bson:"publisher" validate:"required,min=2,max=50"`
 	ReleaseDate time.Time            `json:"releaseDate" bson:"releaseDate" validate:"required"`
 	Platforms   []primitive.ObjectID `json:"platforms" bson:"platforms" validate:"required,min=1"`
@@ -25,7 +25,7 @@ type Game struct {
 type GameUpdate struct {
 	Title       *string              `json:"title,omitempty" bson:"title,omitempty" validate:"omitempty,min=1,max=100"`
 	Description *string              `json:"description,omitempty" bson:"description,omitempty" validate:"omitempty,min=1"`
-	Developer   *string              `json:"developer,omitempty" bson:"developer,omitempty" validate:"omitempty,min=2,max=50"`
+	Developers  []primitive.ObjectID `json:"developers,omitempty" bson:"developers,omitempty" validate:"omitempty,min=1"`
 	Publisher   *string              `json:"publisher,omitempty" bson:"publisher,omitempty" validate:"omitempty,min=2,max=50"`
 	ReleaseDate *time.Time           `json:"releaseDate,omitempty" bson:"releaseDate,omitempty"`
 	Platforms   []primitive.ObjectID `json:"platforms,omitempty" bson:"platforms,omitempty" validate:"omitempty,min=1"`

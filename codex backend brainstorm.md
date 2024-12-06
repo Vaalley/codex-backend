@@ -114,37 +114,29 @@
 - `POST /rate-game` - Rate a game and update the overall score.
 - `GET /get-game-score?id=123` - Get the overall user score for a game.
 
-
 ## File Structure
 
 ```text
 codex-backend/
-├── cmd/
-│   └── main.go                  # Entry point for the application, initializes app and routes
-├── config/
-│   └── config.go                # Loads and stores app configuration (e.g., database URI, JWT secret)
-├── controllers/                 # Handles HTTP requests and responses
-│   ├── user_controller.go       # User-related operations
-│   ├── game_controller.go       # Game-related operations
-│   ├── platform_controller.go   # Platform-related operations
-│   └── progress_controller.go   # Game progress operations
-├── models/                      # Data models and MongoDB schemas
-│   ├── user.go                  # User model
-│   ├── game.go                  # Game model
-│   ├── platform.go              # Platform model
-│   └── progress.go              # Game progress model
-├── routes/
-│   └── routes.go                # Organizes and registers all routes with Fiber
-├── services/                    # Contains business logic
-│   ├── auth_service.go          # Authentication (e.g., JWT generation)
-│   └── user_service.go          # User-related operations (e.g., password hashing)
-├── db/                          # Database setup
-│   └── mongo.go                 # MongoDB connection logic
-├── middleware/
-│   └── auth_middleware.go       # Middleware for authentication (e.g., JWT validation)
-├── utils/                       # Utility functions
-│   └── hash.go                  # Password hashing utilities
-├── .env                         # Environment variables (excluded from version control)
-├── go.mod                       # Go module file
-└── go.sum                       # Dependency checksum file
-```
+├── .air.toml                    # 📄 Air configuration file
+├── .env                         # 🌐 Environment variables
+├── .env.example                 # 🌐 Example environment variables
+├── .git/                        # 🗃️ Git version control directory
+├── .gitignore                   # 📄 Git ignore file
+├── LICENSE                      # 📜 License file
+├── README.md                    # 📘 Project documentation
+├── cmd/                         # 🛠️ Command line tools
+├── config/                      # ⚙️ Configuration files
+├── controllers/                 # 🎮 Application controllers
+├── db/                          # 🗄️ Database files
+├── docs/                        # 📚 Documentation files
+├── go.mod                       # 📦 Go module file
+├── go.sum                       # 📦 Dependency checksum file
+├── logger/                      # 📝 Logging utilities
+├── middleware/                  # 🔗 Middleware components
+├── models/                      # 🧩 Data models
+├── repositories/                # 📂 Data access repositories
+├── routes/                      # 🛤️ Route definitions
+├── services/                    # 🏗️ Business logic services
+├── tmp/                         # 📂 Temporary files
+└── utils/                       # 🔧 Utility functions

@@ -6,21 +6,29 @@ import (
 	"codex-backend/middleware"
 	"codex-backend/routes"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 )
 
 func main() {
+	startTime := time.Now()
+
 	// Load config and connect to MongoDB
+	log.Println("⚙️  Loading configuration...")
 	config.LoadConfig()
+
+	log.Println("🔌 Connecting to MongoDB...")
 	db.ConnectMongo()
 
 	// Initialize Fiber app
+	log.Println("🚀 Initializing Fiber application...")
 	app := fiber.New(fiber.Config{
 		ErrorHandler: middleware.ErrorHandlerMiddleware,
 	})
 
 	// Register routes
+	log.Println("🛣️  Registering routes...")
 	routes.RegisterRoutes(app)
 
 	// Get port from environment and if not set, default to 3000
@@ -28,8 +36,12 @@ func main() {
 	if port == "" {
 		port = "3000"
 	}
-	log.Printf("Server starting on port %s", port)
+	
+	startupTime := time.Since(startTime).Seconds()
+	log.Printf("✨ Server starting on port %s (startup took %.2f seconds)", port, startupTime)
 
 	// Start server
-	log.Fatal(app.Listen(":" + port))
+	if err := app.Listen(":" + port); err != nil {
+		log.Fatalf("❌ Server failed to start: %v", err)
+	}
 }

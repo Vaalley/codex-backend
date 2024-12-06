@@ -9,12 +9,18 @@ import (
 
 // LoadConfig loads environment variables from .env file
 func LoadConfig() {
+	log.Println("📄 Loading environment variables...")
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("❌ Error loading .env file - make sure it exists and is readable")
 	}
+	log.Println("✅ Environment variables loaded successfully")
 }
 
-// GetEnv gets the environment variable by key
+// GetEnv gets an environment variable by key
 func GetEnv(key string) string {
-	return os.Getenv(key)
+	value := os.Getenv(key)
+	if value == "" {
+		log.Printf("⚠️  Warning: Environment variable %s is not set", key)
+	}
+	return value
 }

@@ -7,12 +7,15 @@ import (
 	"codex-backend/models"
 	"codex-backend/repositories"
 	"codex-backend/services"
+	"log"
 
 	"github.com/gofiber/fiber/v3"
 )
 
 // RegisterRoutes registers API routes
 func RegisterRoutes(app *fiber.App) {
+	log.Println("🏗️  Initializing API dependencies and routes...")
+	
 	// Initialize dependencies
 	platformRepo := repositories.NewMongoPlatformRepository(db.GetCollection("platforms"))
 	platformService := services.NewPlatformService(platformRepo)
@@ -43,53 +46,52 @@ func RegisterRoutes(app *fiber.App) {
 		return c.SendString("It runs!")
 	})
 
-	// |-------------------------------------------------------|
-	// |                    Platform Routes                    |
-	// |-------------------------------------------------------|
+	// Register all routes
+	registerPlatformRoutes(api, platformController)
+	registerGameRoutes(api, gameController)
+	registerGenreRoutes(api, genreController)
+	registerDeveloperRoutes(api, developerController)
+	registerPublisherRoutes(api, publisherController)
 
-	api.Get("/platforms", platformController.GetPlatforms)
-	api.Get("/platforms/:id", platformController.GetPlatformByID)
-	api.Post("/platforms", middleware.ValidateRequestBody(&models.Platform{}), platformController.CreatePlatform)
-	api.Put("/platforms/:id", middleware.ValidateRequestBody(&models.Platform{}), platformController.UpdatePlatform)
-	api.Delete("/platforms/:id", platformController.DeletePlatform)
+	log.Println("✅ API routes initialized successfully")
+}
 
-	// |-------------------------------------------------------|
-	// |                    Game Routes                        |
-	// |-------------------------------------------------------|
+func registerPlatformRoutes(api fiber.Router, c *controllers.PlatformController) {
+	api.Get("/platforms", c.GetPlatforms)
+	api.Get("/platforms/:id", c.GetPlatformByID)
+	api.Post("/platforms", middleware.ValidateRequestBody(&models.Platform{}), c.CreatePlatform)
+	api.Put("/platforms/:id", middleware.ValidateRequestBody(&models.Platform{}), c.UpdatePlatform)
+	api.Delete("/platforms/:id", c.DeletePlatform)
+}
 
-	api.Get("/games", gameController.GetGames)
-	api.Get("/games/:id", gameController.GetGameByID)
-	api.Post("/games", middleware.ValidateRequestBody(&models.Game{}), gameController.CreateGame)
-	api.Put("/games/:id", middleware.ValidateRequestBody(&models.Game{}), gameController.UpdateGame)
-	api.Delete("/games/:id", gameController.DeleteGame)
+func registerGameRoutes(api fiber.Router, c *controllers.GameController) {
+	api.Get("/games", c.GetGames)
+	api.Get("/games/:id", c.GetGameByID)
+	api.Post("/games", middleware.ValidateRequestBody(&models.Game{}), c.CreateGame)
+	api.Put("/games/:id", middleware.ValidateRequestBody(&models.Game{}), c.UpdateGame)
+	api.Delete("/games/:id", c.DeleteGame)
+}
 
-	// |-------------------------------------------------------|
-	// |                    Genre Routes                       |
-	// |-------------------------------------------------------|
+func registerGenreRoutes(api fiber.Router, c *controllers.GenreController) {
+	api.Get("/genres", c.GetGenres)
+	api.Get("/genres/:id", c.GetGenreByID)
+	api.Post("/genres", middleware.ValidateRequestBody(&models.Genre{}), c.CreateGenre)
+	api.Put("/genres/:id", middleware.ValidateRequestBody(&models.GenreUpdate{}), c.UpdateGenre)
+	api.Delete("/genres/:id", c.DeleteGenre)
+}
 
-	api.Get("/genres", genreController.GetGenres)
-	api.Get("/genres/:id", genreController.GetGenreByID)
-	api.Post("/genres", middleware.ValidateRequestBody(&models.Genre{}), genreController.CreateGenre)
-	api.Put("/genres/:id", middleware.ValidateRequestBody(&models.GenreUpdate{}), genreController.UpdateGenre)
-	api.Delete("/genres/:id", genreController.DeleteGenre)
+func registerDeveloperRoutes(api fiber.Router, c *controllers.DeveloperController) {
+	api.Get("/developers", c.GetDevelopers)
+	api.Get("/developers/:id", c.GetDeveloperByID)
+	api.Post("/developers", middleware.ValidateRequestBody(&models.Developer{}), c.CreateDeveloper)
+	api.Put("/developers/:id", middleware.ValidateRequestBody(&models.DeveloperUpdate{}), c.UpdateDeveloper)
+	api.Delete("/developers/:id", c.DeleteDeveloper)
+}
 
-	// |-------------------------------------------------------|
-	// |                   Developer Routes                    |
-	// |-------------------------------------------------------|
-
-	api.Get("/developers", developerController.GetDevelopers)
-	api.Get("/developers/:id", developerController.GetDeveloperByID)
-	api.Post("/developers", middleware.ValidateRequestBody(&models.Developer{}), developerController.CreateDeveloper)
-	api.Put("/developers/:id", middleware.ValidateRequestBody(&models.DeveloperUpdate{}), developerController.UpdateDeveloper)
-	api.Delete("/developers/:id", developerController.DeleteDeveloper)
-
-	// |-------------------------------------------------------|
-	// |                   Publisher Routes                     |
-	// |-------------------------------------------------------|
-
-	api.Get("/publishers", publisherController.GetPublishers)
-	api.Get("/publishers/:id", publisherController.GetPublisherByID)
-	api.Post("/publishers", middleware.ValidateRequestBody(&models.Publisher{}), publisherController.CreatePublisher)
-	api.Put("/publishers/:id", middleware.ValidateRequestBody(&models.PublisherUpdate{}), publisherController.UpdatePublisher)
-	api.Delete("/publishers/:id", publisherController.DeletePublisher)
+func registerPublisherRoutes(api fiber.Router, c *controllers.PublisherController) {
+	api.Get("/publishers", c.GetPublishers)
+	api.Get("/publishers/:id", c.GetPublisherByID)
+	api.Post("/publishers", middleware.ValidateRequestBody(&models.Publisher{}), c.CreatePublisher)
+	api.Put("/publishers/:id", middleware.ValidateRequestBody(&models.PublisherUpdate{}), c.UpdatePublisher)
+	api.Delete("/publishers/:id", c.DeletePublisher)
 }

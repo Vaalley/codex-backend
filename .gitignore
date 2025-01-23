@@ -1,0 +1,9 @@
+# IDE specific
+.idea/
+.vscode/
+
+# Environment files
+.env
+
+# Project specific
+tmp/

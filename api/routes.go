@@ -7,9 +7,11 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 
 	"github.com/vaalley/codex-backend/api/middleware"
+	"github.com/vaalley/codex-backend/handlers"
+	"github.com/vaalley/codex-backend/models"
 )
 
-// Registers the routes of the app
+// SetupRoutes registers the routes of the app
 func SetupRoutes(app *fiber.App) {
 	log.Println("🔄 Registering routes... 🛣️")
 
@@ -23,17 +25,22 @@ func SetupRoutes(app *fiber.App) {
 	// "/startupz" Checks if the application has completed its startup sequence and is ready to proceed with initialization and readiness checks
 	app.Get(healthcheck.DefaultStartupEndpoint, healthcheck.NewHealthChecker())
 	// app.Get("/metrics", monitor.New()) // Doesn't work because github.com/gofiber/fiber/v3/middleware/monitor doesn't exist?
-	//     app.Post("/login", handlers.Login) // need to add handlers.Login
-	//     app.Post("/register", handlers.Register) // need to add handlers.Register
+
+	// Auth routes with rate limiting and validation
+	auth := app.Group("/auth", middleware.RateLimit())
+	auth.Post("/login", middleware.ValidateRequest(&models.LoginRequest{}), handlers.Login)
+	auth.Post("/register", middleware.ValidateRequest(&models.RegisterRequest{}), handlers.Register)
+	auth.Post("/logout", middleware.JWTAuth(), handlers.Logout)
 
 	//  ------------------
 	// | Protected routes |
 	//  ------------------
-	api := app.Group("/api", middleware.Auth())
+	api := app.Group("/api", middleware.APIKeyAuth())
 
-	// Test route
 	api.Get("/", func(c fiber.Ctx) error {
-		return c.SendString("Hello, World!")
+		return c.JSON(fiber.Map{
+			"message": "Hello, World!",
+		})
 	})
 
 	// Games routes

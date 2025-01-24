@@ -24,3 +24,8 @@ func GetEnv(key string) string {
 	}
 	return value
 }
+
+// Returns true if the app is running in production mode
+func IsProduction() bool {
+	return GetEnv("GO_ENV") == "production"
+}

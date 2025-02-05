@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/vaalley/codex-backend/api"
 	"github.com/vaalley/codex-backend/config"
 	"github.com/vaalley/codex-backend/db"
@@ -27,6 +28,8 @@ func main() {
 
 	// Initialize a new Fiber app
 	app := fiber.New()
+
+	app.Use(cors.New())
 
 	// Register routes
 	api.SetupRoutes(app)

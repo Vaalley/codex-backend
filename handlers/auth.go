@@ -112,6 +112,7 @@ func Login(c fiber.Ctx) error {
 			"id":       user.ID,
 			"username": user.Username,
 			"email":    user.Email,
+			"token":    token,
 		},
 	})
 }

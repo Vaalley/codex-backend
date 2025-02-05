@@ -6,6 +6,7 @@ import (
 	"github.com/vaalley/codex-backend/utils"
 )
 
+// JWTAuth returns a middleware that validates JWT tokens
 func JWTAuth() fiber.Handler {
 	return func(c fiber.Ctx) error {
 		// Try to get token from cookie first

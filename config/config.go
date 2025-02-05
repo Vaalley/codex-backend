@@ -7,7 +7,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Loads environment variables from .env file
+// LoadConfig loads environment variables from .env file
 func LoadConfig() {
 	log.Println("🔄 Loading environment variables... 🔑")
 	if err := godotenv.Load(); err != nil {
@@ -16,7 +16,7 @@ func LoadConfig() {
 	log.Println("✅ Environment variables loaded successfully")
 }
 
-// Gets an environment variable by key
+// GetEnv gets an environment variable by key
 func GetEnv(key string) string {
 	value := os.Getenv(key)
 	if value == "" {
@@ -25,7 +25,7 @@ func GetEnv(key string) string {
 	return value
 }
 
-// Returns true if the app is running in production mode
+// IsProduction returns true if the app is running in production mode
 func IsProduction() bool {
 	return GetEnv("GO_ENV") == "production"
 }

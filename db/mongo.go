@@ -12,7 +12,7 @@ import (
 
 var MongoClient *mongo.Client
 
-// Sets up MongoDB connection
+// ConnectMongo sets up MongoDB connection
 func ConnectMongo() {
 	uri := config.GetEnv("MONGODB_URI")
 	log.Printf("🔄 Attempting MongoDB connection to %s... 🗃️", MaskURI(uri))
@@ -35,7 +35,7 @@ func ConnectMongo() {
 	log.Println("✅ Successfully connected to MongoDB!")
 }
 
-// Gets a MongoDB collection
+// GetCollection gets a MongoDB collection
 func GetCollection(collectionName string) *mongo.Collection {
 	dbName := config.GetEnv("DB_NAME")
 	log.Printf("🔄 Accessing collection: %s in database: %s 📑", collectionName, dbName)
@@ -47,7 +47,7 @@ func GetCollection(collectionName string) *mongo.Collection {
 	return collection
 }
 
-// Masks sensitive information in MongoDB URI
+// MaskURI masks sensitive information in MongoDB URI
 func MaskURI(uri string) string {
 	if uri == "" {
 		return ""

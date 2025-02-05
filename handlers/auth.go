@@ -14,6 +14,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// Register handles the registration of a new user
 func Register(c fiber.Ctx) error {
 	// Parse request
 	var req models.RegisterRequest
@@ -66,6 +67,7 @@ func Register(c fiber.Ctx) error {
 	})
 }
 
+// Login handles the login of a user
 func Login(c fiber.Ctx) error {
 	var req models.LoginRequest
 	if err := c.Bind().Body(&req); err != nil {
@@ -114,6 +116,7 @@ func Login(c fiber.Ctx) error {
 	})
 }
 
+// Logout handles the logout of a user
 func Logout(c fiber.Ctx) error {
 	// Clear session cookie
 	c.Cookie(&fiber.Cookie{

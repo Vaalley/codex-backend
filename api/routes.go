@@ -3,6 +3,7 @@ package api
 import (
 	"log"
 
+	"github.com/gofiber/contrib/monitor"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 
@@ -24,7 +25,7 @@ func SetupRoutes(app *fiber.App) {
 	app.Get(healthcheck.DefaultReadinessEndpoint, healthcheck.NewHealthChecker())
 	// "/startupz" Checks if the application has completed its startup sequence and is ready to proceed with initialization and readiness checks
 	app.Get(healthcheck.DefaultStartupEndpoint, healthcheck.NewHealthChecker())
-	// app.Get("/metrics", monitor.New()) // Doesn't work because github.com/gofiber/fiber/v3/middleware/monitor doesn't exist?
+	app.Get("/metrics", monitor.New())
 
 	// Auth routes with rate limiting and validation
 	auth := app.Group("/auth", middleware.RateLimit())
